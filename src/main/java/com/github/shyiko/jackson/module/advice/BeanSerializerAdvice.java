@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
 
 /**
+ * @param <T> type of the bean this advice can be applied to
  * @author <a href="mailto:stanley.shyiko@gmail.com">Stanley Shyiko</a>
  */
 public interface BeanSerializerAdvice<T> {

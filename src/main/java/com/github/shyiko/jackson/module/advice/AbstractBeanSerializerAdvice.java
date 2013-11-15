@@ -23,7 +23,7 @@ import java.io.IOException;
 
 /**
  * Default (no-op) implementation of {@link BeanSerializerAdvice}.
- *
+ * @param <T> type of the bean this advice can be applied to
  * @author <a href="mailto:stanley.shyiko@gmail.com">Stanley Shyiko</a>
  */
 public abstract class AbstractBeanSerializerAdvice<T> implements BeanSerializerAdvice<T> {
