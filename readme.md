@@ -9,7 +9,6 @@ for example.
 ## Usage
 
 1. Include Maven dependency:
-
 ```xml
 <dependency>
     <groupId>com.github.shyiko</groupId>
@@ -17,17 +16,15 @@ for example.
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
-
 > The latest development version always available through [Sonatype Snapshots](https://oss.sonatype.org/content/repositories/snapshots) repository.
 
-1. Register [JsonAdviceModule](https://github.com/shyiko/jackson-module-advice/blob/master/src/main/java/com/github/shyiko/jackson/module/advice/JsonAdviceModule.java).
-
+2. Register [JsonAdviceModule](https://github.com/shyiko/jackson-module-advice/blob/master/src/main/java/com/github/shyiko/jackson/module/advice/JsonAdviceModule.java).
 ```java
 ObjectMapper objectMapper = ...
 objectMapper.registerModule(new JsonAdviceModule());
 ```
 
-2. Annotate with [@JsonSerializerAdvice]((https://github.com/shyiko/jackson-module-advice/blob/master/src/main/java/com/github/shyiko/jackson/module/advice/JsonSerializerAdvice.java)) type(s)/field(s)/method(s) you wish to advise serialization of. Be ready to provide
+3. Annotate with [@JsonSerializerAdvice]((https://github.com/shyiko/jackson-module-advice/blob/master/src/main/java/com/github/shyiko/jackson/module/advice/JsonSerializerAdvice.java)) type(s)/field(s)/method(s) you wish to advise serialization of. Be ready to provide
 implementation(s) of [AbstractBeanSerializerAdvice](https://github.com/shyiko/jackson-module-advice/blob/master/src/main/java/com/github/shyiko/jackson/module/advice/AbstractBeanSerializerAdvice.java).
 
 ## Example
