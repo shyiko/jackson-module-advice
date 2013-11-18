@@ -13,7 +13,7 @@ for example.
 <dependency>
     <groupId>com.github.shyiko</groupId>
     <artifactId>jackson-module-advice</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 > The latest development version always available through [Sonatype Snapshots](https://oss.sonatype.org/content/repositories/snapshots) repository.
