@@ -17,10 +17,8 @@ package com.github.shyiko.jackson.module.advice;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.*;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -33,11 +31,19 @@ import static org.testng.Assert.assertEquals;
 public class JsonAdviceModuleTest {
 
     @Test
-    public void testModule() throws Exception {
-        assertEquals("{\"firstName\":\"Sponge\",\"lastName\":\"Bob\"}",
-                objectMapper().writeValueAsString(new User("Sponge", "Bob", "loves you")));
+    public void testSerialization() throws Exception {
+        assertEquals(objectMapper().writeValueAsString(new User("Sponge", "Bob", "loves you")),
+                "{\"firstName\":\"Sponge\",\"lastName\":\"Bob\"}");
         assertEquals(objectMapper(new JsonAdviceModule()).writeValueAsString(new User("Sponge", "Bob", "loves you")),
                 "{\"firstName\":\"Sponge\",\"fieldInTheMiddle\":\"value\",\"lastName\":\"Bob\"}");
+    }
+
+    @Test
+    public void testDeserialization() throws Exception {
+        String JSON = "{\"firstName\":\"Sponge\",\"lastName\":\"Bob\",\"password\":\"loves you\"}";
+        assertEquals(objectMapper().readValue(JSON, User.class), new User("Sponge", "Bob", null));
+        assertEquals(objectMapper(new JsonAdviceModule()).readValue(JSON, User.class),
+                new User("Sponge", "Bob", "loves you"));
     }
 
     private ObjectMapper objectMapper(Module... modules) {
@@ -50,6 +56,7 @@ public class JsonAdviceModuleTest {
     }
 
     @JsonSerializerAdvice(UserSerializationAdvice.class)
+    @JsonDeserializerAdvice(UserDeserializationAdvice.class)
     abstract class UserMixin {
 
         @JsonIgnore
@@ -68,6 +75,20 @@ public class JsonAdviceModuleTest {
         }
     }
 
+    static class UserDeserializationAdvice implements BeanDeserializerAdvice<User> {
+
+        @Override
+        public boolean intercept(User bean, String propertyName, JsonParser json, DeserializationContext context)
+                throws IOException {
+            System.out.println(propertyName);
+            if ("password".equals(propertyName)) {
+                bean.password = json.getText();
+                return true;
+            }
+            return false;
+        }
+    }
+
     static class User {
 
         public String firstName;
@@ -81,6 +102,24 @@ public class JsonAdviceModuleTest {
             this.firstName = firstName;
             this.lastName = lastName;
             this.password = password;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            User user = (User) o;
+            return !(firstName != null ? !firstName.equals(user.firstName) : user.firstName != null) &&
+                    !(lastName != null ? !lastName.equals(user.lastName) : user.lastName != null) &&
+                    !(password != null ? !password.equals(user.password) : user.password != null);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = firstName != null ? firstName.hashCode() : 0;
+            result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
+            result = 31 * result + (password != null ? password.hashCode() : 0);
+            return result;
         }
     }
 

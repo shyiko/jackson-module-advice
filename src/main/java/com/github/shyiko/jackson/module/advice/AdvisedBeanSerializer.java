@@ -20,16 +20,20 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.BeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerBuilder;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.BeanAsArraySerializer;
 import com.fasterxml.jackson.databind.ser.impl.ObjectIdWriter;
+import com.fasterxml.jackson.databind.ser.impl.WritableObjectId;
 import com.fasterxml.jackson.databind.ser.std.BeanSerializerBase;
 import com.fasterxml.jackson.databind.util.NameTransformer;
 
 import java.io.IOException;
 
 /**
+ * Whole class is basically a rip-off of {@link com.fasterxml.jackson.databind.ser.BeanSerializer} with inlined
+ * for-{@link BeanSerializerAdvice} calls. Original code belongs to FasterXML, LLC (licensed under Apache License 2.0).
  * @author <a href="mailto:stanley.shyiko@gmail.com">Stanley Shyiko</a>
  */
 @SuppressWarnings("unchecked")
@@ -38,7 +42,7 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
     private final BeanSerializerAdvice beanSerializerAdvice;
     private final boolean unwrappingSerializer;
 
-    public AdvisedBeanSerializer(JavaType type, BeanSerializerBuilder builder, BeanPropertyWriter[] properties,
+    protected AdvisedBeanSerializer(JavaType type, BeanSerializerBuilder builder, BeanPropertyWriter[] properties,
              BeanPropertyWriter[] filteredProperties, BeanSerializerAdvice beanSerializerAdvice) {
         super(type, builder, properties, filteredProperties);
         this.beanSerializerAdvice = beanSerializerAdvice;
@@ -47,6 +51,12 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
 
     protected AdvisedBeanSerializer(AdvisedBeanSerializer src, String[] toIgnore) {
         super(src, toIgnore);
+        this.beanSerializerAdvice = src.beanSerializerAdvice;
+        this.unwrappingSerializer = src.unwrappingSerializer;
+    }
+
+    protected AdvisedBeanSerializer(AdvisedBeanSerializer src, ObjectIdWriter objectIdWriter, Object filterId) {
+        super(src, objectIdWriter, filterId);
         this.beanSerializerAdvice = src.beanSerializerAdvice;
         this.unwrappingSerializer = src.unwrappingSerializer;
     }
@@ -64,13 +74,13 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
     }
 
     @Override
-    public boolean isUnwrappingSerializer() {
-        return unwrappingSerializer;
+    public BeanSerializerBase withObjectIdWriter(ObjectIdWriter objectIdWriter) {
+        return new AdvisedBeanSerializer(this, objectIdWriter, _propertyFilterId);
     }
 
     @Override
-    public BeanSerializerBase withObjectIdWriter(ObjectIdWriter objectIdWriter) {
-        throw new UnsupportedOperationException();
+    protected BeanSerializerBase withFilterId(Object filterId) {
+        return new AdvisedBeanSerializer(this, _objectIdWriter, filterId);
     }
 
     @Override
@@ -80,12 +90,24 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
 
     @Override
     protected BeanSerializerBase asArraySerializer() {
-        throw new UnsupportedOperationException();
+        /* Can not:
+         * - have Object Id (may be allowed in future)
+         * - have any getter
+         */
+        if ((_objectIdWriter == null) && (_anyGetterWriter == null) && (_propertyFilterId == null)) {
+            return new BeanAsArraySerializer(this);
+        }
+        // already is one, so:
+        return this;
     }
 
     @Override
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider provider)
             throws IOException {
+        if (_objectIdWriter != null) {
+            serializeWithObjectId(bean, jgen, provider, !unwrappingSerializer);
+            return;
+        }
         if (!unwrappingSerializer) {
             jgen.writeStartObject();
         }
@@ -101,6 +123,36 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
         }
     }
 
+    protected void serializeWithObjectId(Object bean, JsonGenerator jgen, SerializerProvider provider,
+            boolean startEndObject) throws IOException {
+        final ObjectIdWriter w = _objectIdWriter;
+        WritableObjectId objectId = provider.findObjectId(bean, w.generator);
+        // If possible, write as id already
+        if (objectId.writeAsId(jgen, provider, w)) {
+            return;
+        }
+        // If not, need to inject the id:
+        Object id = objectId.generateId(bean);
+        if (w.alwaysAsId) {
+            w.serializer.serialize(id, jgen, provider);
+            return;
+        }
+        if (startEndObject) {
+            jgen.writeStartObject();
+        }
+        beanSerializerAdvice.before(bean, jgen, provider);
+        objectId.writeAsField(jgen, provider, w);
+        if (_propertyFilterId != null) {
+            serializeFieldsFiltered(bean, jgen, provider);
+        } else {
+            serializeFields(bean, jgen, provider);
+        }
+        beanSerializerAdvice.after(bean, jgen, provider);
+        if (startEndObject) {
+            jgen.writeEndObject();
+        }
+    }
+
     protected void serializeFieldsFiltered(Object bean, JsonGenerator jgen, SerializerProvider provider)
             throws IOException {
         /* note: almost verbatim copy of "serializeFields"; copied (instead of merged)
@@ -108,18 +160,17 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
          */
 
         final BeanPropertyWriter[] props;
-        if (_filteredProps != null && provider.getSerializationView() != null) {
+        if (_filteredProps != null && provider.getActiveView() != null) {
             props = _filteredProps;
         } else {
             props = _props;
         }
-        final BeanPropertyFilter filter = findFilter(provider);
+        final PropertyFilter filter = findPropertyFilter(provider, _propertyFilterId, bean);
         // better also allow missing filter actually..
         if (filter == null) {
             serializeFields(bean, jgen, provider);
             return;
         }
-
         int i = 0;
         try {
             for (final int len = props.length; i < len; ++i) {
@@ -131,7 +182,7 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
                 }
             }
             if (_anyGetterWriter != null) {
-                _anyGetterWriter.getAndSerialize(bean, jgen, provider);
+                _anyGetterWriter.getAndFilter(bean, jgen, provider, filter);
             }
         } catch (Exception e) {
             String name = (i == props.length) ? "[anySetter]" : props[i].getName();
@@ -147,7 +198,7 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
     protected void serializeFields(Object bean, JsonGenerator jgen, SerializerProvider provider)
             throws IOException {
         final BeanPropertyWriter[] props;
-        if (_filteredProps != null && provider.getSerializationView() != null) {
+        if (_filteredProps != null && provider.getActiveView() != null) {
             props = _filteredProps;
         } else {
             props = _props;

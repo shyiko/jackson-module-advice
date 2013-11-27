@@ -17,8 +17,11 @@ package com.github.shyiko.jackson.module.advice;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerBuilder;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
 /**
@@ -26,7 +29,7 @@ import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
  */
 public class JsonAdviceModule extends Module {
 
-    private static final Version MODULE_VERSION = new Version(1, 0, 0, null,
+    private static final Version MODULE_VERSION = new Version(1, 1, 0, "SNAPSHOT",
             "com.github.shyiko", "jackson-module-advice");
 
     @Override
@@ -48,6 +51,15 @@ public class JsonAdviceModule extends Module {
                     BeanDescription beanDesc, com.fasterxml.jackson.databind.ser.BeanSerializerBuilder builder) {
                 JsonSerializerAdvice advice = beanDesc.getClassAnnotations().get(JsonSerializerAdvice.class);
                 return advice != null ? new AdvisedBeanSerializerBuilder(builder, advice.value()) : builder;
+            }
+        });
+        context.addBeanDeserializerModifier(new BeanDeserializerModifier() {
+
+            @Override
+            public BeanDeserializerBuilder updateBuilder(DeserializationConfig config, BeanDescription beanDesc,
+                    BeanDeserializerBuilder builder) {
+                JsonDeserializerAdvice advice = beanDesc.getClassAnnotations().get(JsonDeserializerAdvice.class);
+                return  advice != null ? new AdvisedBeanDeserializerBuilder(builder, advice.value()) : builder;
             }
         });
     }
