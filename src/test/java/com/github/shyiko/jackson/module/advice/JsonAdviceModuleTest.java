@@ -80,7 +80,6 @@ public class JsonAdviceModuleTest {
         @Override
         public boolean intercept(User bean, String propertyName, JsonParser json, DeserializationContext context)
                 throws IOException {
-            System.out.println(propertyName);
             if ("password".equals(propertyName)) {
                 bean.password = json.getText();
                 return true;
