@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
  */
 public class JsonAdviceModule extends Module {
 
-    private static final Version MODULE_VERSION = new Version(1, 1, 0, "SNAPSHOT",
+    private static final Version MODULE_VERSION = new Version(1, 1, 0, null,
             "com.github.shyiko", "jackson-module-advice");
 
     @Override
