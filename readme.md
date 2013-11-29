@@ -13,7 +13,7 @@ for example.
 <dependency>
     <groupId>com.github.shyiko</groupId>
     <artifactId>jackson-module-advice</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 > The latest development version always available through [Sonatype Snapshots](https://oss.sonatype.org/content/repositories/snapshots) repository.
@@ -24,8 +24,10 @@ ObjectMapper objectMapper = ...
 objectMapper.registerModule(new JsonAdviceModule());
 ```
 
-3. Annotate with [@JsonSerializerAdvice]((https://github.com/shyiko/jackson-module-advice/blob/master/src/main/java/com/github/shyiko/jackson/module/advice/JsonSerializerAdvice.java)) type(s)/field(s)/method(s) you wish to advise serialization of. Be ready to provide
+3. Annotate with [@JsonSerializerAdvice](https://github.com/shyiko/jackson-module-advice/blob/master/src/main/java/com/github/shyiko/jackson/module/advice/JsonSerializerAdvice.java) type(s)/field(s)/method(s) you wish to advise serialization of. Be ready to provide
 implementation(s) of [AbstractBeanSerializerAdvice](https://github.com/shyiko/jackson-module-advice/blob/master/src/main/java/com/github/shyiko/jackson/module/advice/AbstractBeanSerializerAdvice.java).
+
+> Starting from version 1.1.0 jackson-module-advice also supports deserialization advising (with [@JsonDeserializerAdvice](https://github.com/shyiko/jackson-module-advice/blob/master/src/main/java/com/github/shyiko/jackson/module/advice/JsonDeserializerAdvice.java)).
 
 ## Example
 
@@ -101,6 +103,13 @@ objectMapper.addMixInAnnotations(Entity.class, EntityMixin.class);
 Entity entity = ...
 String entityAsAJSON = objectMapper.writeValueAsString(entity);
 ```
+
+> You may also be interested in [JsonAdviceModuleTest](https://github.com/shyiko/jackson-module-advice/blob/master/src/test/java/com/github/shyiko/jackson/module/advice/JsonAdviceModuleTest.java), which contains another serialization/deserialization example.
+
+## Changelog
+
+* 1.1.0 - JsonDeserializerAdvice support. Compatible with jackson-databind 2.3+.
+* 1.0.0 - Initial release. Compatible with jackson-databind 2.1-2.2.
 
 ## License
 
