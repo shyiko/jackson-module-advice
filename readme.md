@@ -45,8 +45,8 @@ public class Entity {
 }
 ```
 
-Imagine we want to embedded links which would allow users to navigate through the entities without the need to know how
-to construct the URLs. In our case what we want is something like:
+Now imagine we want to embed links which would allow users to navigate through the entities without the need to know how
+to construct the URLs. We are aiming for something like:
 
 ```json
 {
@@ -66,13 +66,11 @@ to construct the URLs. In our case what we want is something like:
 }
 ```
 
-Sure, there are multiple ways to accomplish it (by adding "links" field to the Entity (which
+There are multiple ways to get JSON like that (by adding "links" field to the Entity (which
 may or may not be possible depending on whether you have an access to the Entity's source code + doesn't feel right
 considering that links are "not really" part of the Entity itself but rather of some request-specific representation),
 defining custom serializer (which stops being fun once number of fields grows or changes become too frequent), etc).
-JsonAdviceModule brings another way which may seem more appropriate.
-
-So, in this case we'll go with the mixin + @JsonSerializerAdvice.
+JsonAdviceModule brings another option, namely @JsonSerializerAdvice. This is how it could be used:
 
 ```java
 @JsonSerializerAdvice(EntityMixin.EntitySerializerAdvice.class)
