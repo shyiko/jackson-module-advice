@@ -1,0 +1,6 @@
+language: java
+script: mvn -P with-sources-and-javadocs -Ddeploy=snapshot -DskipTests=true -s .travis.settings.xml
+env: 
+  global: 
+  - secure: kykNv1t1Dbz8Mcz+1LBoWY3sBahfXH1j+OCocvZEDU32V8ckWlykw0B+EIIZwLRhrisDV/e9ot9mOahR2R82JNVgDF3JDjkqPqCCE2pTOfsA1we4ktQMzIRmQh4QMIinJo4j11gApeBKrU8JcXVW22bLuSc5FaulbXZ5pp9atWc=
+  - secure: hwGrhRBFskxb+8dJkhIN6cQcqNj/6H1vuy0YMIXuNT1NQzJpEvSJEeZG4zLR2qX/2v74jCINj3zVYVT1T6DPZLXLBzEeVWwbMK+O/eX+mnbosf0RqYwHadCDpyymvsFKu1cjV20yw/nzg9IvhZinDGJA1G02i42AFffx+a62JgI=
