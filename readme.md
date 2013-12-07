@@ -1,4 +1,4 @@
-# jackson-module-advice
+# jackson-module-advice [![Build Status](https://travis-ci.org/shyiko/jackson-module-advice.png?branch=master)](https://travis-ci.org/shyiko/jackson-module-advice)
 
 Advisable Jackson (2.X+) data-binding.
 
