@@ -24,13 +24,41 @@ import com.fasterxml.jackson.databind.deser.BeanDeserializerBuilder;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
+import java.io.IOException;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+
 /**
  * @author <a href="mailto:stanley.shyiko@gmail.com">Stanley Shyiko</a>
  */
 public class JsonAdviceModule extends Module {
 
-    private static final Version MODULE_VERSION = new Version(1, 1, 0, null,
-            "com.github.shyiko", "jackson-module-advice");
+    private static final Version MODULE_VERSION;
+
+    static {
+        String groupId = "com.github.shyiko", artifactId = "jackson-module-advice", build = "UNKNOWN";
+        int major = 0, minor = 0, patch = 0;
+        try {
+            Manifest manifest = ManifestLoader.load(groupId, artifactId);
+            if (manifest != null) {
+                Attributes attributes = manifest.getMainAttributes();
+                String version = attributes.getValue("Implementation-Version");
+                if (version != null) {
+                    String[] versionSplit = version.split("[.]");
+                    if (versionSplit.length == 3) {
+                        major = Integer.parseInt(versionSplit[0]);
+                        minor = Integer.parseInt(versionSplit[1]);
+                        String[] splitBetweenPathAndBuild = versionSplit[2].split("-");
+                        patch = Integer.parseInt(splitBetweenPathAndBuild[0]);
+                        build = splitBetweenPathAndBuild.length == 2 ? splitBetweenPathAndBuild[1] : null;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        MODULE_VERSION = new Version(major, minor, patch, build, groupId, artifactId);
+    }
 
     @Override
     public String getModuleName() {
