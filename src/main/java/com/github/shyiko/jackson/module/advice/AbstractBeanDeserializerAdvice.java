@@ -21,23 +21,24 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import java.io.IOException;
 
 /**
+ * Default (no-op) implementation of {@link BeanDeserializerAdvice}.
  * @param <T> type of the bean this advice can be applied to
  * @author <a href="mailto:stanley.shyiko@gmail.com">Stanley Shyiko</a>
  */
-public interface BeanDeserializerAdvice<T> {
+public class AbstractBeanDeserializerAdvice<T> implements BeanDeserializerAdvice<T> {
 
-    void before(T bean, JsonParser json, DeserializationContext context) throws IOException;
+    @Override
+    public void before(T bean, JsonParser json, DeserializationContext context) throws IOException {
+    }
 
-    /**
-     * @param bean bean instance
-     * @param propertyName property name
-     * @param json json parser
-     * @param context deserialization context
-     * @return true if property deserialization has been taken care of and thus standard processing should not be run,
-     * false otherwise
-     * @throws IOException if anything goes wrong during json processing
-     */
-    boolean intercept(T bean, String propertyName, JsonParser json, DeserializationContext context) throws IOException;
+    @Override
+    public boolean intercept(T bean, String propertyName, JsonParser json, DeserializationContext context)
+            throws IOException {
+        return false;
+    }
 
-    void after(T bean, JsonParser json, DeserializationContext context) throws IOException;
+    @Override
+    public void after(T bean, JsonParser json, DeserializationContext context) throws IOException {
+    }
+
 }

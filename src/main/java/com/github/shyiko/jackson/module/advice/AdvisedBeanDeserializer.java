@@ -192,6 +192,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
                 return deserializeWithView(jp, ctxt, bean, view);
             }
         }
+        beanDeserializerAdvice.before(bean, jp, ctxt);
         for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String propName = jp.getCurrentName();
             // Skip field name:
@@ -213,6 +214,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
             }
             handleUnknownVanilla(jp, ctxt, bean, propName);
         }
+        beanDeserializerAdvice.after(bean, jp, ctxt);
         return bean;
     }
 
@@ -224,6 +226,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
                                       DeserializationContext ctxt, JsonToken t)
             throws IOException {
         final Object bean = _valueInstantiator.createUsingDefault(ctxt);
+        beanDeserializerAdvice.before(bean, jp, ctxt);
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             // Skip field name:
@@ -244,6 +247,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
                 handleUnknownVanilla(jp, ctxt, bean, propName);
             }
         }
+        beanDeserializerAdvice.after(bean, jp, ctxt);
         return bean;
     }
 
@@ -279,6 +283,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
                 return deserializeWithView(jp, ctxt, bean, view);
             }
         }
+        beanDeserializerAdvice.before(bean, jp, ctxt);
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             // Skip field name:
@@ -299,6 +304,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
             }
             handleUnknownVanilla(jp, ctxt, bean, propName);
         }
+        beanDeserializerAdvice.after(bean, jp, ctxt);
         return bean;
     }
 
@@ -355,10 +361,6 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
                 continue;
             }
 
-            if (beanDeserializerAdvice.intercept(null, propName, jp, ctxt)) {
-                continue;
-            }
-
             // regular property? needs buffering
             SettableBeanProperty prop = _beanProperties.find(propName);
             if (prop != null) {
@@ -406,6 +408,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
     protected Object deserializeWithView(JsonParser jp, DeserializationContext ctxt,
                                          Object bean, Class<?> activeView)
             throws IOException {
+        beanDeserializerAdvice.before(bean, jp, ctxt);
         JsonToken t = jp.getCurrentToken();
         for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String propName = jp.getCurrentName();
@@ -431,6 +434,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
             }
             handleUnknownVanilla(jp, ctxt, bean, propName);
         }
+        beanDeserializerAdvice.after(bean, jp, ctxt);
         return bean;
     }
 
@@ -455,6 +459,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
             injectValues(ctxt, bean);
         }
         final Class<?> activeView = _needViewProcesing ? ctxt.getActiveView() : null;
+        beanDeserializerAdvice.before(bean, jp, ctxt);
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             jp.nextToken();
@@ -496,6 +501,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
         }
         tokens.writeEndObject();
         _unwrappedPropertyHandler.processUnwrapped(jp, ctxt, bean, tokens);
+        beanDeserializerAdvice.after(bean, jp, ctxt);
         return bean;
     }
 
@@ -509,6 +515,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
         TokenBuffer tokens = new TokenBuffer(jp);
         tokens.writeStartObject();
         final Class<?> activeView = _needViewProcesing ? ctxt.getActiveView() : null;
+        beanDeserializerAdvice.before(bean, jp, ctxt);
         for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String propName = jp.getCurrentName();
 
@@ -544,6 +551,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
         }
         tokens.writeEndObject();
         _unwrappedPropertyHandler.processUnwrapped(jp, ctxt, bean, tokens);
+        beanDeserializerAdvice.after(bean, jp, ctxt);
         return bean;
     }
 
@@ -596,10 +604,6 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
                 continue;
             }
 
-            if (beanDeserializerAdvice.intercept(null, propName, jp, ctxt)) {
-                continue;
-            }
-
             // regular property? needs buffering
             SettableBeanProperty prop = _beanProperties.find(propName);
             if (prop != null) {
@@ -645,6 +649,7 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
             throws IOException {
         final Class<?> activeView = _needViewProcesing ? ctxt.getActiveView() : null;
         final ExternalTypeHandler ext = _externalTypeIdHandler.start();
+        beanDeserializerAdvice.before(bean, jp, ctxt);
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             jp.nextToken();
@@ -692,7 +697,9 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
             handleUnknownProperty(jp, ctxt, bean, propName);
         }
         // and when we get this far, let's try finalizing the deal:
-        return ext.complete(jp, ctxt, bean);
+        ext.complete(jp, ctxt, bean);
+        beanDeserializerAdvice.after(bean, jp, ctxt);
+        return bean;
     }
 
     protected Object deserializeUsingPropertyBasedWithExternalTypeId(JsonParser jp, DeserializationContext ctxt)
@@ -742,10 +749,6 @@ public class AdvisedBeanDeserializer extends BeanDeserializerBase {
             }
             // Object Id property?
             if (buffer.readIdProperty(propName)) {
-                continue;
-            }
-
-            if (beanDeserializerAdvice.intercept(null, propName, jp, ctxt)) {
                 continue;
             }
 

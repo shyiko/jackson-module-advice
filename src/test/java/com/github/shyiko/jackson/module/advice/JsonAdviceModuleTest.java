@@ -75,7 +75,7 @@ public class JsonAdviceModuleTest {
         }
     }
 
-    static class UserDeserializationAdvice implements BeanDeserializerAdvice<User> {
+    static class UserDeserializationAdvice extends AbstractBeanDeserializerAdvice<User> {
 
         @Override
         public boolean intercept(User bean, String propertyName, JsonParser json, DeserializationContext context)
