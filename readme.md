@@ -13,7 +13,7 @@ for example.
 <dependency>
     <groupId>com.github.shyiko</groupId>
     <artifactId>jackson-module-advice</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 </dependency>
 ```
 > The latest development version always available through [Sonatype Snapshots](https://oss.sonatype.org/content/repositories/snapshots) repository.
@@ -106,6 +106,7 @@ String entityAsAJSON = objectMapper.writeValueAsString(entity);
 
 ## Changelog
 
+* 1.1.1 - BeanDeserializerAdvice extended to act as "before"/"after" (bean-scoped) advice.
 * 1.1.0 - JsonDeserializerAdvice support. Compatible with jackson-databind 2.3+.
 * 1.0.0 - Initial release. Compatible with jackson-databind 2.1-2.2.
 
