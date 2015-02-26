@@ -30,7 +30,7 @@ public interface BeanDeserializerAdvice<T> {
 
     /**
      * @param bean bean instance
-     * @param propertyName property name
+     * @param propertyName bean property name
      * @param json json parser
      * @param context deserialization context
      * @return true if property deserialization has been taken care of and thus standard processing should not be run,

@@ -38,6 +38,17 @@ public abstract class AbstractBeanSerializerAdvice<T> implements BeanSerializerA
     }
 
     @Override
+    public boolean intercept(T bean, JsonGenerator json, SerializerProvider provider) throws IOException {
+        return false;
+    }
+
+    @Override
+    public boolean intercept(T bean, JsonGenerator json, BeanProperty property, SerializerProvider provider)
+            throws IOException {
+        return false;
+    }
+
+    @Override
     public void after(T bean, JsonGenerator json, BeanProperty property, SerializerProvider provider)
             throws IOException {
     }

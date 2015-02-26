@@ -31,6 +31,34 @@ public interface BeanSerializerAdvice<T> {
 
     void before(T bean, JsonGenerator json, BeanProperty property, SerializerProvider provider) throws IOException;
 
+    /**
+     * @param bean bean instance
+     * @param json json generator
+     * @param provider serializer provider
+     * @return true if instance serialization has been taken care of (neither of
+     * {@link #before(Object, com.fasterxml.jackson.core.JsonGenerator,
+     * com.fasterxml.jackson.databind.SerializerProvider)}, standard processing,
+     * {@link #after(Object, com.fasterxml.jackson.core.JsonGenerator,
+     * com.fasterxml.jackson.databind.SerializerProvider)} will be called in this case), false otherwise
+     * @throws IOException if anything goes wrong during json generation
+     */
+    boolean intercept(T bean, JsonGenerator json, SerializerProvider provider) throws IOException;
+
+    /**
+     * @param bean bean instance
+     * @param json json generator
+     * @param property bean property
+     * @param provider serializer provider
+     * @return true if property serialization has been taken care of (neither of
+     * {@link #before(Object, com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.BeanProperty,
+     * com.fasterxml.jackson.databind.SerializerProvider)}, standard processing,
+     * {@link #after(Object, com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.BeanProperty,
+     * com.fasterxml.jackson.databind.SerializerProvider)} will be called in this case), false otherwise
+     * @throws IOException if anything goes wrong during json generation
+     */
+    boolean intercept(T bean, JsonGenerator json, BeanProperty property, SerializerProvider provider)
+            throws IOException;
+
     void after(T bean, JsonGenerator json, BeanProperty property, SerializerProvider provider) throws IOException;
 
     void after(T bean, JsonGenerator json, SerializerProvider provider) throws IOException;

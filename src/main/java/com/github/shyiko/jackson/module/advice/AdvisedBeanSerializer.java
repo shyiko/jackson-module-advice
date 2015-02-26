@@ -111,13 +111,15 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
         if (!unwrappingSerializer) {
             jgen.writeStartObject();
         }
-        beanSerializerAdvice.before(bean, jgen, provider);
-        if (_propertyFilterId != null) {
-            serializeFieldsFiltered(bean, jgen, provider);
-        } else {
-            serializeFields(bean, jgen, provider);
+        if (!beanSerializerAdvice.intercept(bean, jgen, provider)) {
+            beanSerializerAdvice.before(bean, jgen, provider);
+            if (_propertyFilterId != null) {
+                serializeFieldsFiltered(bean, jgen, provider);
+            } else {
+                serializeFields(bean, jgen, provider);
+            }
+            beanSerializerAdvice.after(bean, jgen, provider);
         }
-        beanSerializerAdvice.after(bean, jgen, provider);
         if (!unwrappingSerializer) {
             jgen.writeEndObject();
         }
@@ -140,14 +142,16 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
         if (startEndObject) {
             jgen.writeStartObject();
         }
-        beanSerializerAdvice.before(bean, jgen, provider);
-        objectId.writeAsField(jgen, provider, w);
-        if (_propertyFilterId != null) {
-            serializeFieldsFiltered(bean, jgen, provider);
-        } else {
-            serializeFields(bean, jgen, provider);
+        if (!beanSerializerAdvice.intercept(bean, jgen, provider)) {
+            beanSerializerAdvice.before(bean, jgen, provider);
+            objectId.writeAsField(jgen, provider, w);
+            if (_propertyFilterId != null) {
+                serializeFieldsFiltered(bean, jgen, provider);
+            } else {
+                serializeFields(bean, jgen, provider);
+            }
+            beanSerializerAdvice.after(bean, jgen, provider);
         }
-        beanSerializerAdvice.after(bean, jgen, provider);
         if (startEndObject) {
             jgen.writeEndObject();
         }
@@ -176,9 +180,11 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
             for (final int len = props.length; i < len; ++i) {
                 BeanPropertyWriter prop = props[i];
                 if (prop != null) { // can have nulls in filtered list
-                    beanSerializerAdvice.before(bean, jgen, prop, provider);
-                    filter.serializeAsField(bean, jgen, provider, prop);
-                    beanSerializerAdvice.after(bean, jgen, prop, provider);
+                    if (!beanSerializerAdvice.intercept(bean, jgen, prop, provider)) {
+                        beanSerializerAdvice.before(bean, jgen, prop, provider);
+                        filter.serializeAsField(bean, jgen, provider, prop);
+                        beanSerializerAdvice.after(bean, jgen, prop, provider);
+                    }
                 }
             }
             if (_anyGetterWriter != null) {
@@ -208,9 +214,11 @@ public class AdvisedBeanSerializer extends BeanSerializerBase {
             for (final int len = props.length; i < len; ++i) {
                 BeanPropertyWriter prop = props[i];
                 if (prop != null) { // can have nulls in filtered list
-                    beanSerializerAdvice.before(bean, jgen, prop, provider);
-                    prop.serializeAsField(bean, jgen, provider);
-                    beanSerializerAdvice.after(bean, jgen, prop, provider);
+                    if (!beanSerializerAdvice.intercept(bean, jgen, prop, provider)) {
+                        beanSerializerAdvice.before(bean, jgen, prop, provider);
+                        prop.serializeAsField(bean, jgen, provider);
+                        beanSerializerAdvice.after(bean, jgen, prop, provider);
+                    }
                 }
             }
             if (_anyGetterWriter != null) {
